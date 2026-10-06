@@ -3,6 +3,7 @@ obj/
 Release/
 Release-Fixed/
 Release-Fixed2/
+Release-Fixed3/
 .vs/
 *.user
 *.suo
