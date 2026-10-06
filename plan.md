@@ -4,7 +4,7 @@
 
 - [x] Create a .NET 10 WPF Windows x64 solution scaffold.
 - [x] Keep implementation changes small and commit each coherent phase.
-- [ ] Update this checklist in the same commit as every implementation phase.
+- [x] Update this checklist in the same commit as every implementation phase.
 - [ ] Validate each phase with the smallest relevant build or test command.
 - [ ] Use descriptive commit messages with the required Copilot co-author trailer.
 
@@ -12,8 +12,8 @@
 
 - [x] Create the solution and WPF application project.
 - [x] Target `net10.0-windows` with WPF enabled and nullable reference types.
-- [ ] Add application identity, administrator manifest, and publish settings.
-- [ ] Add shared domain models and deterministic rule naming.
+- [x] Add application identity, administrator manifest, and publish settings.
+- [x] Add shared domain models and deterministic rule naming.
 
 ## Phase 2 - Configuration and safety
 
