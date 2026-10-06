@@ -132,7 +132,6 @@ public sealed class WindowsFirewallService : IFirewallService
             "remoteip=::/0",
             "protocol=any",
             "profile=any",
-            $"group={RuleNameGenerator.GroupName}",
             $"description={RuleNameGenerator.Description(application.Id)}",
             $"enable={(application.Enabled ? "yes" : "no")}"
         })
@@ -159,6 +158,10 @@ public sealed class WindowsFirewallService : IFirewallService
                     ? "Windows Firewall could not create the IPv6 rule."
                     : details);
         }
+
+        dynamic policyRules = CreatePolicy().Rules;
+        dynamic createdRule = policyRules.Item(ruleName);
+        createdRule.Grouping = RuleNameGenerator.GroupName;
     }
 
     private void VerifyRule(
