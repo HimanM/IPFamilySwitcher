@@ -58,4 +58,12 @@
 - [x] Add self-contained `win-x64` publish configuration.
 - [x] Add portable packaging without touching unmanaged firewall rules.
 - [x] Run the automated build, unit tests, and self-contained publish verification.
-- [ ] Run the live elevated Windows Firewall manual safety review.
+- [ ] Run the live elevated Windows Firewall manual safety review (blocked: current shell is not administrator).
+
+## Verification notes
+
+- Automated tests: 7 passed.
+- Release build: passed with 0 warnings and 0 errors.
+- Self-contained `win-x64` publish: passed.
+- Portable archive: `IPFamilySwitcher-Portable-x64.zip`.
+- Live firewall create/remove verification must be run from an elevated Administrator shell.
