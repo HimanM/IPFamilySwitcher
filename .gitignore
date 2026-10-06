@@ -2,6 +2,7 @@ bin/
 obj/
 Release/
 Release-Fixed/
+Release-Fixed2/
 .vs/
 *.user
 *.suo
