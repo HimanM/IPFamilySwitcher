@@ -191,6 +191,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             await _firewallService.RemoveManagedRuleAsync(application.Id);
             application.Model.ExecutablePath = canonicalPath;
             application.Model.DisplayName = Path.GetFileNameWithoutExtension(canonicalPath);
+            application.RefreshMetadata();
             await _firewallService.ApplyModeAsync(application.Model);
             await _configurationService.SaveAsync(_configuration);
             await RefreshAsync();

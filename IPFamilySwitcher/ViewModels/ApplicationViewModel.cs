@@ -59,6 +59,7 @@ public sealed class ApplicationViewModel : INotifyPropertyChanged
         Status = status.State switch
         {
             FirewallRuleState.Correct when Model.Mode == NetworkMode.Default => "Default",
+            FirewallRuleState.Correct when !Model.Enabled => "Disabled",
             FirewallRuleState.Correct => "Active",
             FirewallRuleState.Missing => "Missing",
             FirewallRuleState.Disabled => "Disabled",
@@ -68,6 +69,12 @@ public sealed class ApplicationViewModel : INotifyPropertyChanged
             FirewallRuleState.Duplicate => "Duplicate",
             _ => "Error"
         };
+    }
+
+    public void RefreshMetadata()
+    {
+        OnPropertyChanged(nameof(DisplayName));
+        OnPropertyChanged(nameof(ExecutablePath));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
