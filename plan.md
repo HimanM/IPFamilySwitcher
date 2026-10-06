@@ -57,4 +57,5 @@
 - [x] Add release documentation and manual test checklist.
 - [x] Add self-contained `win-x64` publish configuration.
 - [ ] Add installer/portable packaging without touching unmanaged firewall rules.
-- [ ] Run build, unit tests, publish verification, and final manual safety review.
+- [x] Run the automated build, unit tests, and self-contained publish verification.
+- [ ] Run the live elevated Windows Firewall manual safety review.
