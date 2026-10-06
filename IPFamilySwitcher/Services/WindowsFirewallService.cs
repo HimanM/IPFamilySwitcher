@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Diagnostics;
+using System.Text;
 using IPFamilySwitcher.Models;
 using IPFamilySwitcher.Utilities;
 
@@ -60,9 +62,17 @@ public sealed class WindowsFirewallService : IFirewallService
                 return;
             }
 
+            var blockIpv6 = application.Mode == NetworkMode.IPv4Only;
+            if (blockIpv6)
+            {
+                CreateIpv6RuleWithNetSecurity(application, cancellationToken);
+                VerifyRule(application, blockIpv6, cancellationToken);
+                _logger.Info($"Firewall IPv6 block rule created for application {application.Id:D}.");
+                return;
+            }
+
             dynamic rule = Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FWRule")!)
                 ?? throw new InvalidOperationException("Windows Firewall rule type is unavailable.");
-            var blockIpv6 = application.Mode == NetworkMode.IPv4Only;
             rule.Name = blockIpv6
                 ? RuleNameGenerator.ForIpv6Block(application.Id)
                 : RuleNameGenerator.ForIpv4Block(application.Id);
@@ -74,18 +84,10 @@ public sealed class WindowsFirewallService : IFirewallService
             rule.Enabled = application.Enabled;
             rule.Protocol = AnyProtocol;
             rule.Profiles = AllProfiles;
-            rule.RemoteAddresses = blockIpv6 ? "::/0" : "0.0.0.0/0";
+            rule.RemoteAddresses = "0.0.0.0/0";
             rules.Add(rule);
 
-            var expected = blockIpv6
-                ? RuleNameGenerator.ForIpv6Block(application.Id)
-                : RuleNameGenerator.ForIpv4Block(application.Id);
-            if (!EnumerateManagedRules(cancellationToken).Any(ruleInfo =>
-                    string.Equals(ruleInfo.Name, expected, StringComparison.OrdinalIgnoreCase) &&
-                    ruleInfo.Enabled == application.Enabled))
-            {
-                throw new InvalidOperationException("The firewall rule was created but could not be verified.");
-            }
+            VerifyRule(application, blockIpv6, cancellationToken);
 
             _logger.Info($"Firewall rule created for application {application.Id:D}.");
         }
@@ -104,6 +106,77 @@ public sealed class WindowsFirewallService : IFirewallService
                 message, exception);
         }
     }
+
+    private void CreateIpv6RuleWithNetSecurity(
+        ManagedApplication application,
+        CancellationToken cancellationToken)
+    {
+        var ruleName = RuleNameGenerator.ForIpv6Block(application.Id);
+        var enabled = application.Enabled ? "$true" : "$false";
+        var command = string.Join(" ", [
+            "New-NetFirewallRule",
+            $"-Name {PowerShellLiteral(ruleName)}",
+            $"-DisplayName {PowerShellLiteral(ruleName)}",
+            $"-Description {PowerShellLiteral(RuleNameGenerator.Description(application.Id))}",
+            $"-Group {PowerShellLiteral(RuleNameGenerator.GroupName)}",
+            $"-Direction Outbound",
+            $"-Action Block",
+            $"-Program {PowerShellLiteral(application.ExecutablePath)}",
+            $"-Protocol Any",
+            $"-Profile Any",
+            $"-RemoteAddress {PowerShellLiteral("::/0")}",
+            $"-Enabled {enabled}",
+            "-ErrorAction Stop"]);
+
+        var encodedCommand = Convert.ToBase64String(Encoding.Unicode.GetBytes(command));
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encodedCommand}"
+            }
+        };
+
+        if (!process.Start())
+        {
+            throw new InvalidOperationException("Unable to start Windows PowerShell for IPv6 firewall rule creation.");
+        }
+
+        process.WaitForExit();
+        cancellationToken.ThrowIfCancellationRequested();
+        if (process.ExitCode != 0)
+        {
+            var details = process.StandardError.ReadToEnd().Trim();
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(details)
+                    ? "Windows PowerShell could not create the IPv6 firewall rule."
+                    : details);
+        }
+    }
+
+    private void VerifyRule(
+        ManagedApplication application,
+        bool blockIpv6,
+        CancellationToken cancellationToken)
+    {
+        var expected = blockIpv6
+            ? RuleNameGenerator.ForIpv6Block(application.Id)
+            : RuleNameGenerator.ForIpv4Block(application.Id);
+        if (!EnumerateManagedRules(cancellationToken).Any(ruleInfo =>
+                string.Equals(ruleInfo.Name, expected, StringComparison.OrdinalIgnoreCase) &&
+                ruleInfo.Enabled == application.Enabled))
+        {
+            throw new InvalidOperationException("The firewall rule was created but could not be verified.");
+        }
+    }
+
+    private static string PowerShellLiteral(string value) =>
+        $"'{value.Replace("'", "''", StringComparison.Ordinal)}'";
 
     private void RemoveManagedRule(Guid applicationId, CancellationToken cancellationToken)
     {
