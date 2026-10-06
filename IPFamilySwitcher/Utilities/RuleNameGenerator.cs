@@ -3,6 +3,7 @@ namespace IPFamilySwitcher.Utilities;
 public static class RuleNameGenerator
 {
     private const string NamePrefix = "IPFamilySwitcher-";
+    public const string AllIpv6Ranges = "0::/1,8000::/1";
 
     public const string GroupName = "IPFamilySwitcher.ManagedRules";
 

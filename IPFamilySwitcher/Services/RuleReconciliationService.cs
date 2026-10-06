@@ -70,7 +70,9 @@ public sealed class RuleReconciliationService
         var expectedName = application.Mode == NetworkMode.IPv4Only
             ? RuleNameGenerator.ForIpv6Block(application.Id)
             : RuleNameGenerator.ForIpv4Block(application.Id);
-        var expectedRemote = application.Mode == NetworkMode.IPv4Only ? "::/0" : "0.0.0.0/0";
+        var expectedRemote = application.Mode == NetworkMode.IPv4Only
+            ? RuleNameGenerator.AllIpv6Ranges
+            : "0.0.0.0/0";
         var expected = rules.Where(rule =>
             string.Equals(rule.Name, expectedName, StringComparison.OrdinalIgnoreCase)).ToArray();
 

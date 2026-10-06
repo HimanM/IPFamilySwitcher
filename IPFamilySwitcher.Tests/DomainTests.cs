@@ -24,6 +24,12 @@ public sealed class DomainTests
     }
 
     [Fact]
+    public void AllIpv6RangesCoverBothHalvesOfTheAddressSpace()
+    {
+        Assert.Equal("0::/1,8000::/1", RuleNameGenerator.AllIpv6Ranges);
+    }
+
+    [Fact]
     public void ExecutablePathsAreCanonicalizedAndComparedCaseInsensitively()
     {
         var service = new ExecutableService();

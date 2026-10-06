@@ -129,7 +129,7 @@ public sealed class WindowsFirewallService : IFirewallService
             "dir=out",
             "action=block",
             $"program={application.ExecutablePath}",
-            "remoteip=::/0",
+            $"remoteip={RuleNameGenerator.AllIpv6Ranges}",
             "protocol=any",
             "profile=any",
             $"description={RuleNameGenerator.Description(application.Id)}",
