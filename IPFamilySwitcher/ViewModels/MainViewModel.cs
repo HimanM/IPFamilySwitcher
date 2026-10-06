@@ -314,7 +314,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             foreach (var application in Applications)
             {
                 application.Model.Enabled = enabled;
-                if (enabled && application.Mode != NetworkMode.Default)
+                if (application.Mode != NetworkMode.Default)
                 {
                     await _firewallService.ApplyModeAsync(application.Model);
                 }

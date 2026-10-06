@@ -56,7 +56,7 @@ public sealed class WindowsFirewallService : IFirewallService
             RemoveRulesForApplication(rules, application.Id);
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!application.Enabled || application.Mode == NetworkMode.Default)
+            if (application.Mode == NetworkMode.Default)
             {
                 return;
             }

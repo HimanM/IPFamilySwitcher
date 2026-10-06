@@ -73,6 +73,33 @@ public sealed class ReconciliationTests
     }
 
     [Fact]
+    public async Task ReportsDisabledWhenRestrictedRuleExistsButApplicationIsDisabled()
+    {
+        var application = CreateApplication(NetworkMode.IPv4Only, Environment.ProcessPath!);
+        application.Enabled = false;
+        var rule = new FirewallRuleInfo(
+            RuleNameGenerator.ForIpv6Block(application.Id),
+            application.Id,
+            application.ExecutablePath,
+            RuleNameGenerator.GroupName,
+            false,
+            2,
+            0,
+            RuleNameGenerator.AllIpv6Ranges,
+            256,
+            2147);
+        var reconciliation = new RuleReconciliationService(
+            new FakeFirewallService([rule]),
+            new ExecutableService(),
+            new Logger(Path.Combine(Path.GetTempPath(), "IPFamilySwitcherTests", Guid.NewGuid().ToString("N"))));
+
+        var result = await reconciliation.ReconcileAsync([application]);
+
+        Assert.Equal(FirewallRuleState.Correct, result[0].State);
+        Assert.Equal("Disabled.", result[0].Message);
+    }
+
+    [Fact]
     public void FindsRulesWithoutConfiguredApplicationsAsOrphans()
     {
         var application = CreateApplication(NetworkMode.Default);

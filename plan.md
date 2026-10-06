@@ -6,7 +6,7 @@
 - [x] Keep implementation changes small and commit each coherent phase.
 - [x] Update this checklist in the same commit as every implementation phase.
 - [x] Validate each phase with the smallest relevant build or test command.
-- [ ] Use descriptive commit messages with the required Copilot co-author trailer.
+- [x] Use descriptive commit messages with the required Copilot co-author trailer.
 
 ## Phase 1 - Foundation
 
@@ -28,6 +28,7 @@
 - [x] Create, validate, enable, disable, remove, and enumerate managed rules.
 - [x] Implement safe mode transitions with conflict removal and verification.
 - [x] Implement startup reconciliation, missing/incorrect/disabled/orphan states, and repair.
+- [x] Preserve disabled restricted-mode rules so reconciliation reports `Disabled` instead of `Missing`.
 - [x] Add firewall service tests with clearly separated administrator-required integration coverage.
 
 ## Phase 4 - Core application workflow
@@ -62,7 +63,7 @@
 
 ## Verification notes
 
-- Automated tests: 7 passed.
+- Automated tests: 10 passed.
 - Release build: passed with 0 warnings and 0 errors.
 - Self-contained `win-x64` publish: passed.
 - Portable archive: `IPFamilySwitcher-Portable-x64.zip`.
