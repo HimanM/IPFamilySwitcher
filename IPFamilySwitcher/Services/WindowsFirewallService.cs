@@ -112,21 +112,25 @@ public sealed class WindowsFirewallService : IFirewallService
         CancellationToken cancellationToken)
     {
         var ruleName = RuleNameGenerator.ForIpv6Block(application.Id);
-        var enabled = application.Enabled ? "$true" : "$false";
-        var command = string.Join(" ", [
+        var enabled = application.Enabled ? "True" : "False";
+        var ruleCommand = string.Join(" ", [
             "New-NetFirewallRule",
             $"-Name {PowerShellLiteral(ruleName)}",
             $"-DisplayName {PowerShellLiteral(ruleName)}",
             $"-Description {PowerShellLiteral(RuleNameGenerator.Description(application.Id))}",
             $"-Group {PowerShellLiteral(RuleNameGenerator.GroupName)}",
-            $"-Direction Outbound",
-            $"-Action Block",
+            "-Direction Outbound",
+            "-Action Block",
             $"-Program {PowerShellLiteral(application.ExecutablePath)}",
-            $"-Protocol Any",
-            $"-Profile Any",
+            "-Protocol Any",
+            "-Profile Any",
             $"-RemoteAddress {PowerShellLiteral("::/0")}",
-            $"-Enabled {enabled}",
+            $"-Enabled {PowerShellLiteral(enabled)}",
             "-ErrorAction Stop"]);
+        var command =
+            "$ProgressPreference='SilentlyContinue'; " +
+            "try { " + ruleCommand + " | Out-Null } " +
+            "catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }";
 
         var encodedCommand = Convert.ToBase64String(Encoding.Unicode.GetBytes(command));
         using var process = new Process
