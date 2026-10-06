@@ -1,0 +1,300 @@
+using System.IO;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using IPFamilySwitcher.Models;
+using IPFamilySwitcher.Services;
+
+namespace IPFamilySwitcher.ViewModels;
+
+public sealed class MainViewModel : INotifyPropertyChanged
+{
+    private readonly ConfigurationService _configurationService;
+    private readonly IFirewallService _firewallService;
+    private readonly RuleReconciliationService _reconciliationService;
+    private readonly ExecutableService _executableService;
+    private ConfigurationDocument _configuration = new();
+    private string _searchText = string.Empty;
+    private string _summary = "Loading...";
+    private string _errorMessage = string.Empty;
+
+    public MainViewModel(
+        ConfigurationService configurationService,
+        IFirewallService firewallService,
+        RuleReconciliationService reconciliationService,
+        ExecutableService executableService)
+    {
+        _configurationService = configurationService;
+        _firewallService = firewallService;
+        _reconciliationService = reconciliationService;
+        _executableService = executableService;
+
+        Applications = [];
+        AddApplicationCommand = new RelayCommand(_ => AddApplicationRequested?.Invoke(this, EventArgs.Empty));
+        RemoveApplicationCommand = new RelayCommand(parameter => _ = RemoveAsync(parameter as ApplicationViewModel));
+        RepairApplicationCommand = new RelayCommand(parameter => _ = RepairAsync(parameter as ApplicationViewModel));
+        RefreshCommand = new RelayCommand(_ => _ = RefreshAsync());
+        DisableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(false));
+        EnableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(true));
+        RemoveAllRulesCommand = new RelayCommand(_ => _ = RemoveAllRulesAsync());
+    }
+
+    public ObservableCollection<ApplicationViewModel> Applications { get; }
+
+    public IReadOnlyList<NetworkMode> Modes { get; } = Enum.GetValues<NetworkMode>();
+
+    public Func<string, bool>? ConfirmAction { get; set; }
+
+    public IEnumerable<ApplicationViewModel> FilteredApplications =>
+        Applications.Where(application =>
+            string.IsNullOrWhiteSpace(SearchText) ||
+            application.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+            application.ExecutablePath.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (_searchText == value)
+            {
+                return;
+            }
+
+            _searchText = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(FilteredApplications));
+        }
+    }
+
+    public string Summary
+    {
+        get => _summary;
+        private set
+        {
+            if (_summary == value)
+            {
+                return;
+            }
+
+            _summary = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        private set
+        {
+            _errorMessage = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public RelayCommand AddApplicationCommand { get; }
+    public RelayCommand RemoveApplicationCommand { get; }
+    public RelayCommand RepairApplicationCommand { get; }
+    public RelayCommand RefreshCommand { get; }
+    public RelayCommand DisableAllCommand { get; }
+    public RelayCommand EnableAllCommand { get; }
+    public RelayCommand RemoveAllRulesCommand { get; }
+
+    public event EventHandler? AddApplicationRequested;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public async Task LoadAsync()
+    {
+        _configuration = await _configurationService.LoadAsync();
+        Applications.Clear();
+        foreach (var application in _configuration.Applications)
+        {
+            Applications.Add(new ApplicationViewModel(application));
+        }
+
+        await RefreshAsync();
+    }
+
+    public async Task AddAsync(string path)
+    {
+        try
+        {
+            var canonicalPath = _executableService.Canonicalize(path);
+            if (_executableService.IsDuplicate(_configuration.Applications.Select(app => app.ExecutablePath), canonicalPath))
+            {
+                throw new InvalidOperationException("This executable is already managed.");
+            }
+
+            var application = new ManagedApplication
+            {
+                DisplayName = Path.GetFileNameWithoutExtension(canonicalPath),
+                ExecutablePath = canonicalPath
+            };
+            _configuration.Applications.Add(application);
+            await _configurationService.SaveAsync(_configuration);
+            Applications.Add(new ApplicationViewModel(application));
+            UpdateSummary();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or IOException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    public async Task ChangeModeAsync(ApplicationViewModel? application, NetworkMode mode)
+    {
+        if (application is null)
+        {
+            return;
+        }
+
+        var previousMode = application.Mode;
+        try
+        {
+            application.Mode = mode;
+            await _firewallService.ApplyModeAsync(application.Model);
+            await _configurationService.SaveAsync(_configuration);
+            await RefreshAsync();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or IOException or InvalidOperationException)
+        {
+            application.Mode = previousMode;
+            ErrorMessage = exception.Message;
+            await RefreshAsync();
+        }
+    }
+
+    private async Task RemoveAsync(ApplicationViewModel? application)
+    {
+        if (application is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (ConfirmAction is not null &&
+                !ConfirmAction($"Remove {application.DisplayName} from IP Family Switcher? Its managed firewall rule will also be removed."))
+            {
+                return;
+            }
+
+            await _firewallService.RemoveManagedRuleAsync(application.Id);
+            _configuration.Applications.Remove(application.Model);
+            await _configurationService.SaveAsync(_configuration);
+            Applications.Remove(application);
+            UpdateSummary();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or IOException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    private async Task RepairAsync(ApplicationViewModel? application)
+    {
+        if (application is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _firewallService.ApplyModeAsync(application.Model);
+            await RefreshAsync();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or InvalidOperationException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        try
+        {
+            var statuses = await _reconciliationService.ReconcileAsync(
+                Applications.Select(application => application.Model).ToArray());
+            foreach (var application in Applications)
+            {
+                var status = statuses.FirstOrDefault(item => item.ApplicationId == application.Id);
+                if (status is not null)
+                {
+                    application.UpdateStatus(status);
+                    application.Model.LastReconciledAt = DateTimeOffset.UtcNow;
+                }
+            }
+
+            UpdateSummary();
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or InvalidOperationException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    private async Task SetAllEnabledAsync(bool enabled)
+    {
+        try
+        {
+            foreach (var application in Applications)
+            {
+                await _firewallService.SetRuleEnabledAsync(application.Id, enabled);
+                application.Model.Enabled = enabled;
+            }
+
+            await _configurationService.SaveAsync(_configuration);
+            await RefreshAsync();
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or IOException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    private async Task RemoveAllRulesAsync()
+    {
+        try
+        {
+            if (ConfirmAction is not null &&
+                !ConfirmAction("Remove all IP Family Switcher firewall rules and reset applications to Default?"))
+            {
+                return;
+            }
+
+            await _firewallService.RemoveAllManagedRulesAsync();
+            foreach (var application in Applications)
+            {
+                application.Mode = NetworkMode.Default;
+                application.Model.Enabled = true;
+            }
+
+            await _configurationService.SaveAsync(_configuration);
+            await RefreshAsync();
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or IOException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    private void UpdateSummary()
+    {
+        var active = Applications.Count(application =>
+            application.Status is "Active" or "Disabled");
+        var issues = Applications.Count(application =>
+            application.Status is not "Active" and not "Default");
+        Summary = $"Managed applications: {Applications.Count}    " +
+                  $"IPv4 Only: {Applications.Count(app => app.Mode == NetworkMode.IPv4Only)}    " +
+                  $"IPv6 Only: {Applications.Count(app => app.Mode == NetworkMode.IPv6Only)}    " +
+                  $"Default: {Applications.Count(app => app.Mode == NetworkMode.Default)}    " +
+                  $"Active firewall rules: {active}    Issues: {issues}";
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}

@@ -32,16 +32,16 @@
 
 ## Phase 4 - Core application workflow
 
-- [ ] Add executable selection, metadata/icon lookup, add/remove, locate, and edit workflows.
-- [ ] Add per-application mode and rule enabled-state operations.
-- [ ] Add global enable/disable and remove-all behavior with confirmation.
-- [ ] Add privilege detection and understandable user-facing errors.
+- [x] Add executable selection, metadata/icon lookup, add/remove, locate, and edit workflows.
+- [x] Add per-application mode and rule enabled-state operations.
+- [x] Add global enable/disable and remove-all behavior with confirmation.
+- [x] Add privilege detection and understandable user-facing errors.
 
 ## Phase 5 - WPF interface
 
-- [ ] Build the main dashboard with summary counts, search, and application rows.
-- [ ] Display status text and accessible indicators for all reconciliation states.
-- [ ] Add repair, refresh, and confirmation dialogs.
+- [x] Build the main dashboard with summary counts, search, and application rows.
+- [x] Display status text and accessible indicators for all reconciliation states.
+- [x] Add repair, refresh, and confirmation dialogs.
 - [ ] Add advanced details without cluttering the primary workflow.
 
 ## Phase 6 - Optional v1.1 features
