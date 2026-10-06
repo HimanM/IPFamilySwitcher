@@ -17,9 +17,9 @@
 
 ## Phase 2 - Configuration and safety
 
-- [ ] Add versioned configuration schema for managed applications.
-- [ ] Add canonical `.exe` path validation and case-insensitive duplicate detection.
-- [ ] Add atomic configuration writes, backup recovery, and logging.
+- [x] Add versioned configuration schema for managed applications.
+- [x] Add canonical `.exe` path validation and case-insensitive duplicate detection.
+- [x] Add atomic configuration writes, backup recovery, and logging.
 - [ ] Add unit tests for serialization, migration, paths, and rule names.
 
 ## Phase 3 - Firewall ownership and reconciliation
