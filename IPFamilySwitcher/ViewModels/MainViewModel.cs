@@ -33,10 +33,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
         AddApplicationCommand = new RelayCommand(_ => AddApplicationRequested?.Invoke(this, EventArgs.Empty));
         RemoveApplicationCommand = new RelayCommand(parameter => _ = RemoveAsync(parameter as ApplicationViewModel));
         RepairApplicationCommand = new RelayCommand(parameter => _ = RepairAsync(parameter as ApplicationViewModel));
+        LocateApplicationCommand = new RelayCommand(parameter => LocateApplicationRequested?.Invoke(parameter as ApplicationViewModel));
         RefreshCommand = new RelayCommand(_ => _ = RefreshAsync());
         DisableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(false));
         EnableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(true));
         RemoveAllRulesCommand = new RelayCommand(_ => _ = RemoveAllRulesAsync());
+        RepairAllCommand = new RelayCommand(_ => _ = RepairAllAsync());
     }
 
     public ObservableCollection<ApplicationViewModel> Applications { get; }
@@ -95,12 +97,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public RelayCommand AddApplicationCommand { get; }
     public RelayCommand RemoveApplicationCommand { get; }
     public RelayCommand RepairApplicationCommand { get; }
+    public RelayCommand LocateApplicationCommand { get; }
     public RelayCommand RefreshCommand { get; }
     public RelayCommand DisableAllCommand { get; }
     public RelayCommand EnableAllCommand { get; }
     public RelayCommand RemoveAllRulesCommand { get; }
+    public RelayCommand RepairAllCommand { get; }
 
     public event EventHandler? AddApplicationRequested;
+    public event Action<ApplicationViewModel?>? LocateApplicationRequested;
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public async Task LoadAsync()
@@ -163,6 +168,37 @@ public sealed class MainViewModel : INotifyPropertyChanged
             application.Mode = previousMode;
             ErrorMessage = exception.Message;
             await RefreshAsync();
+        }
+    }
+
+    public async Task LocateAsync(ApplicationViewModel? application, string path)
+    {
+        if (application is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var canonicalPath = _executableService.Canonicalize(path);
+            if (_configuration.Applications.Any(item =>
+                    item.Id != application.Id &&
+                    string.Equals(item.ExecutablePath, canonicalPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("This executable is already managed.");
+            }
+
+            await _firewallService.RemoveManagedRuleAsync(application.Id);
+            application.Model.ExecutablePath = canonicalPath;
+            application.Model.DisplayName = Path.GetFileNameWithoutExtension(canonicalPath);
+            await _firewallService.ApplyModeAsync(application.Model);
+            await _configurationService.SaveAsync(_configuration);
+            await RefreshAsync();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FirewallOperationException or IOException or InvalidOperationException)
+        {
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -284,6 +320,24 @@ public sealed class MainViewModel : INotifyPropertyChanged
             await RefreshAsync();
         }
         catch (Exception exception) when (exception is FirewallOperationException or IOException)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    private async Task RepairAllAsync()
+    {
+        try
+        {
+            foreach (var application in Applications.Where(application => application.Mode != NetworkMode.Default))
+            {
+                await _firewallService.ApplyModeAsync(application.Model);
+            }
+
+            await RefreshAsync();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception) when (exception is FirewallOperationException or InvalidOperationException)
         {
             ErrorMessage = exception.Message;
         }

@@ -27,6 +27,7 @@ public partial class MainWindow : Window
             new RuleReconciliationService(firewallService, executableService, logger),
             executableService);
         _viewModel.AddApplicationRequested += AddApplication;
+        _viewModel.LocateApplicationRequested += LocateApplication;
         _viewModel.ConfirmAction = message =>
             MessageBox.Show(this, message, "Confirm action", MessageBoxButton.YesNo, MessageBoxImage.Warning) ==
             MessageBoxResult.Yes;
@@ -46,6 +47,22 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) == true)
         {
             await _viewModel.AddAsync(dialog.FileName);
+        }
+
+    }
+
+    private async void LocateApplication(ApplicationViewModel? application)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Executable files (*.exe)|*.exe",
+            CheckFileExists = true,
+            Multiselect = false,
+            Title = "Locate executable"
+        };
+        if (dialog.ShowDialog(this) == true)
+        {
+            await _viewModel.LocateAsync(application, dialog.FileName);
         }
     }
 

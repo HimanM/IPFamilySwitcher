@@ -68,6 +68,7 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="Repair" Command="{Binding DataContext.RepairApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="Locate" Command="{Binding DataContext.LocateApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                                 <Button Content="Remove" Command="{Binding DataContext.RemoveApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
@@ -81,6 +82,7 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="Enable All" Command="{Binding EnableAllCommand}"/>
                 <Button Content="Disable All" Command="{Binding DisableAllCommand}"/>
+                <Button Content="Repair All" Command="{Binding RepairAllCommand}"/>
                 <Button Content="Remove All Rules" Command="{Binding RemoveAllRulesCommand}"/>
             </StackPanel>
         </DockPanel>
