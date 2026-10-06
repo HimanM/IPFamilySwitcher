@@ -5,7 +5,7 @@
 - [x] Create a .NET 10 WPF Windows x64 solution scaffold.
 - [x] Keep implementation changes small and commit each coherent phase.
 - [x] Update this checklist in the same commit as every implementation phase.
-- [ ] Validate each phase with the smallest relevant build or test command.
+- [x] Validate each phase with the smallest relevant build or test command.
 - [ ] Use descriptive commit messages with the required Copilot co-author trailer.
 
 ## Phase 1 - Foundation
@@ -28,7 +28,7 @@
 - [x] Create, validate, enable, disable, remove, and enumerate managed rules.
 - [x] Implement safe mode transitions with conflict removal and verification.
 - [x] Implement startup reconciliation, missing/incorrect/disabled/orphan states, and repair.
-- [ ] Add firewall service tests with clearly separated administrator-required integration coverage.
+- [x] Add firewall service tests with clearly separated administrator-required integration coverage.
 
 ## Phase 4 - Core application workflow
 
@@ -56,6 +56,6 @@
 
 - [x] Add release documentation and manual test checklist.
 - [x] Add self-contained `win-x64` publish configuration.
-- [ ] Add installer/portable packaging without touching unmanaged firewall rules.
+- [x] Add portable packaging without touching unmanaged firewall rules.
 - [x] Run the automated build, unit tests, and self-contained publish verification.
 - [ ] Run the live elevated Windows Firewall manual safety review.

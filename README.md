@@ -20,6 +20,12 @@ dotnet test IPFamilySwitcher.Tests\IPFamilySwitcher.Tests.csproj --configuration
 dotnet publish IPFamilySwitcher\IPFamilySwitcher.csproj --configuration Release --runtime win-x64 --self-contained true --output Release
 ```
 
+To create the portable archive:
+
+```powershell
+.\scripts\publish.ps1
+```
+
 The native firewall integration requires Windows and administrator privileges. Unit tests do not modify the live firewall.
 
 ## Manual safety checklist
