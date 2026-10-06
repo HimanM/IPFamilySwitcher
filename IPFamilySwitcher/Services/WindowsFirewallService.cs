@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Diagnostics;
-using System.Text;
 using IPFamilySwitcher.Models;
 using IPFamilySwitcher.Utilities;
 
@@ -65,7 +64,7 @@ public sealed class WindowsFirewallService : IFirewallService
             var blockIpv6 = application.Mode == NetworkMode.IPv4Only;
             if (blockIpv6)
             {
-                CreateIpv6RuleWithNetSecurity(application, cancellationToken);
+                CreateIpv6RuleWithNetsh(application, cancellationToken);
                 VerifyRule(application, blockIpv6, cancellationToken);
                 _logger.Info($"Firewall IPv6 block rule created for application {application.Id:D}.");
                 return;
@@ -107,48 +106,43 @@ public sealed class WindowsFirewallService : IFirewallService
         }
     }
 
-    private void CreateIpv6RuleWithNetSecurity(
+    private void CreateIpv6RuleWithNetsh(
         ManagedApplication application,
         CancellationToken cancellationToken)
     {
         var ruleName = RuleNameGenerator.ForIpv6Block(application.Id);
-        var enabled = application.Enabled ? "True" : "False";
-        var ruleCommand = string.Join(" ", [
-            "New-NetFirewallRule",
-            $"-Name {PowerShellLiteral(ruleName)}",
-            $"-DisplayName {PowerShellLiteral(ruleName)}",
-            $"-Description {PowerShellLiteral(RuleNameGenerator.Description(application.Id))}",
-            $"-Group {PowerShellLiteral(RuleNameGenerator.GroupName)}",
-            "-Direction Outbound",
-            "-Action Block",
-            $"-Program {PowerShellLiteral(application.ExecutablePath)}",
-            "-Protocol Any",
-            "-Profile Any",
-            $"-RemoteAddress {PowerShellLiteral("::/0")}",
-            $"-Enabled {PowerShellLiteral(enabled)}",
-            "-ErrorAction Stop"]);
-        var command =
-            "$ProgressPreference='SilentlyContinue'; " +
-            "try { " + ruleCommand + " | Out-Null } " +
-            "catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }";
-
-        var encodedCommand = Convert.ToBase64String(Encoding.Unicode.GetBytes(command));
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "powershell.exe",
+                FileName = "netsh.exe",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encodedCommand}"
+                RedirectStandardOutput = true
             }
         };
+        foreach (var argument in new[]
+        {
+            "advfirewall", "firewall", "add", "rule",
+            $"name={ruleName}",
+            "dir=out",
+            "action=block",
+            $"program={application.ExecutablePath}",
+            "remoteip=::/0",
+            "protocol=any",
+            "profile=any",
+            $"group={RuleNameGenerator.GroupName}",
+            $"description={RuleNameGenerator.Description(application.Id)}",
+            $"enable={(application.Enabled ? "yes" : "no")}"
+        })
+        {
+            process.StartInfo.ArgumentList.Add(argument);
+        }
 
         if (!process.Start())
         {
-            throw new InvalidOperationException("Unable to start Windows PowerShell for IPv6 firewall rule creation.");
+            throw new InvalidOperationException("Unable to start netsh for IPv6 firewall rule creation.");
         }
 
         process.WaitForExit();
@@ -156,9 +150,13 @@ public sealed class WindowsFirewallService : IFirewallService
         if (process.ExitCode != 0)
         {
             var details = process.StandardError.ReadToEnd().Trim();
+            if (string.IsNullOrWhiteSpace(details))
+            {
+                details = process.StandardOutput.ReadToEnd().Trim();
+            }
             throw new InvalidOperationException(
                 string.IsNullOrWhiteSpace(details)
-                    ? "Windows PowerShell could not create the IPv6 firewall rule."
+                    ? "Windows Firewall could not create the IPv6 rule."
                     : details);
         }
     }
