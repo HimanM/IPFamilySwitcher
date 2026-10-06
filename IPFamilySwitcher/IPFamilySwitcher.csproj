@@ -9,6 +9,7 @@
     <AssemblyName>IPFamilySwitcher</AssemblyName>
     <RootNamespace>IPFamilySwitcher</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources/app.ico</ApplicationIcon>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Platforms>x64</Platforms>
   </PropertyGroup>
@@ -20,4 +21,9 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Resource Include="Resources/app-icon.png" />
+    <Resource Include="Resources/app.ico" />
+    <EmbeddedResource Include="../version.json" LogicalName="IPFamilySwitcher.version.json" />
+  </ItemGroup>
 </Project>

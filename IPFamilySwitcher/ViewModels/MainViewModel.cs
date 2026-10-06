@@ -33,7 +33,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _privilegeService = privilegeService ?? new PrivilegeService();
 
         Applications = [];
-        Applications.CollectionChanged += (_, _) => OnPropertyChanged(nameof(FilteredApplications));
+        Applications.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(FilteredApplications)); UpdateSummary(); };
         AddApplicationCommand = new RelayCommand(_ => AddApplicationRequested?.Invoke(this, EventArgs.Empty));
         RemoveApplicationCommand = new RelayCommand(parameter => _ = RemoveAsync(parameter as ApplicationViewModel));
         RepairApplicationCommand = new RelayCommand(parameter => _ = RepairAsync(parameter as ApplicationViewModel));
@@ -43,6 +43,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         DisableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(false));
         EnableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(true));
         RemoveAllRulesCommand = new RelayCommand(_ => _ = RemoveAllRulesAsync());
+        ToggleRuleCommand = new RelayCommand(parameter => _ = ToggleRuleAsync(parameter as ApplicationViewModel));
         RepairAllCommand = new RelayCommand(_ => _ = RepairAllAsync());
     }
 
@@ -106,6 +107,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public string VersionLabel => "V" + ReleaseInfo.Current.Version;
+    public int ApplicationCount => Applications.Count;
+    public int ActiveCount => Applications.Sum(app => app.ActiveRuleCount);
+    public int IssueCount => Applications.Count(app => app.Status is not "Active" and not "Default" and not "Disabled");
+    public RelayCommand ToggleRuleCommand { get; }
     public RelayCommand AddApplicationCommand { get; }
     public RelayCommand RemoveApplicationCommand { get; }
     public RelayCommand RepairApplicationCommand { get; }
@@ -153,7 +159,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _configuration.Applications.Add(application);
             await _configurationService.SaveAsync(_configuration);
             Applications.Add(new ApplicationViewModel(application));
-            UpdateSummary();
+            await RefreshAsync();
             ErrorMessage = string.Empty;
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or IOException)
@@ -307,6 +313,24 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private async Task ToggleRuleAsync(ApplicationViewModel? application)
+    {
+        if (application is null || application.Mode == NetworkMode.Default || !IsAdministrator) return;
+        var enabled = !application.Model.Enabled;
+        try
+        {
+            await _firewallService.SetRuleEnabledAsync(application.Id, enabled);
+            application.Model.Enabled = enabled;
+            await _configurationService.SaveAsync(_configuration);
+            await RefreshAsync();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
     private async Task SetAllEnabledAsync(bool enabled)
     {
         try
@@ -379,10 +403,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void UpdateSummary()
     {
-        var active = Applications.Count(application =>
-            application.Status is "Active" or "Disabled");
+        OnPropertyChanged(nameof(ApplicationCount));
+        OnPropertyChanged(nameof(ActiveCount));
+        OnPropertyChanged(nameof(IssueCount));
+        var active = ActiveCount;
         var issues = Applications.Count(application =>
-            application.Status is not "Active" and not "Default");
+            application.Status is not "Active" and not "Default" and not "Disabled");
         Summary = $"Managed applications: {Applications.Count}    " +
                   $"IPv4 Only: {Applications.Count(app => app.Mode == NetworkMode.IPv4Only)}    " +
                   $"IPv6 Only: {Applications.Count(app => app.Mode == NetworkMode.IPv6Only)}    " +

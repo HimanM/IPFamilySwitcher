@@ -8,7 +8,18 @@ public sealed class ApplicationViewModel : INotifyPropertyChanged
 {
     private NetworkMode _mode;
     private NetworkMode _pendingMode;
-    private string _status = "Default";
+    private string _status = "Checking";
+    private string _runningStatus = "Checking";
+    public string RunningStatus => _runningStatus;
+    public string ToggleLabel => Model.Enabled ? "Disable" : "Enable";
+    public string StatusDetail { get; private set; } = "Checking firewall configuration.";
+    public int ActiveRuleCount { get; private set; }
+
+    public void UpdateRunningStatus(string status)
+    {
+        _runningStatus = status;
+        OnPropertyChanged(nameof(RunningStatus));
+    }
 
     public ApplicationViewModel(ManagedApplication application)
     {
@@ -79,6 +90,10 @@ public sealed class ApplicationViewModel : INotifyPropertyChanged
 
     public void UpdateStatus(ApplicationRuleStatus status)
     {
+        StatusDetail = status.Message;
+        ActiveRuleCount = status.Rules.Count(rule => rule.Enabled);
+        OnPropertyChanged(nameof(StatusDetail));
+        OnPropertyChanged(nameof(ToggleLabel));
         Status = status.State switch
         {
             FirewallRuleState.Correct when Model.Mode == NetworkMode.Default => "Default",

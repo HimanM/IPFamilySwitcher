@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using IPFamilySwitcher.Models;
 using IPFamilySwitcher.Utilities;
 
@@ -72,7 +73,7 @@ public sealed class RuleReconciliationService
             : RuleNameGenerator.ForIpv4Block(application.Id);
         var expectedRemote = application.Mode == NetworkMode.IPv4Only
             ? RuleNameGenerator.AllIpv6Ranges
-            : "0.0.0.0/0";
+            : RuleNameGenerator.AllIpv4Range;
         var expected = rules.Where(rule =>
             string.Equals(rule.Name, expectedName, StringComparison.OrdinalIgnoreCase)).ToArray();
 
@@ -118,6 +119,8 @@ public sealed class RuleReconciliationService
     {
         static string[] Normalize(string value) =>
             value.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                // Windows compresses IPv6 addresses (for example, 0::/1 becomes ::/1).
+                .Select(entry => IPNetwork.TryParse(entry, out var network) ? network.ToString() : entry)
                 .Order(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
@@ -125,5 +128,5 @@ public sealed class RuleReconciliationService
     }
 
     private static bool IsAllProfiles(int profiles) =>
-        profiles is 7 or 2147 or int.MaxValue;
+        profiles is 7 or int.MaxValue;
 }

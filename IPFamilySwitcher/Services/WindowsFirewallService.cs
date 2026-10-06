@@ -11,7 +11,7 @@ public sealed class WindowsFirewallService : IFirewallService
     private const int OutboundDirection = 2;
     private const int BlockAction = 0;
     private const int AnyProtocol = 256;
-    private const int AllProfiles = 2147;
+    private const int AllProfiles = int.MaxValue;
 
     private readonly Logger _logger;
 
@@ -52,6 +52,9 @@ public sealed class WindowsFirewallService : IFirewallService
 
         try
         {
+            // Validate COM properties before removing the previous rule.
+            dynamic? ipv4Rule = application.Mode == NetworkMode.IPv6Only
+                ? CreateIpv4BlockRule(application) : null;
             dynamic rules = CreatePolicy().Rules;
             RemoveRulesForApplication(rules, application.Id);
             cancellationToken.ThrowIfCancellationRequested();
@@ -70,21 +73,7 @@ public sealed class WindowsFirewallService : IFirewallService
                 return;
             }
 
-            dynamic rule = Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FWRule")!)
-                ?? throw new InvalidOperationException("Windows Firewall rule type is unavailable.");
-            rule.Name = blockIpv6
-                ? RuleNameGenerator.ForIpv6Block(application.Id)
-                : RuleNameGenerator.ForIpv4Block(application.Id);
-            rule.Description = RuleNameGenerator.Description(application.Id);
-            rule.Grouping = RuleNameGenerator.GroupName;
-            rule.ApplicationName = application.ExecutablePath;
-            rule.Direction = OutboundDirection;
-            rule.Action = BlockAction;
-            rule.Enabled = application.Enabled;
-            rule.Protocol = AnyProtocol;
-            rule.Profiles = AllProfiles;
-            rule.RemoteAddresses = "0.0.0.0/0";
-            rules.Add(rule);
+            rules.Add(ipv4Rule);
 
             VerifyRule(application, blockIpv6, cancellationToken);
 
@@ -104,6 +93,24 @@ public sealed class WindowsFirewallService : IFirewallService
             throw new FirewallOperationException(
                 message, exception);
         }
+    }
+
+    internal static object CreateIpv4BlockRule(ManagedApplication application)
+    {
+        dynamic rule = Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FWRule")!)
+            ?? throw new InvalidOperationException("Windows Firewall rule type is unavailable.");
+        rule.Name = RuleNameGenerator.ForIpv4Block(application.Id);
+        rule.Description = RuleNameGenerator.Description(application.Id);
+        rule.Grouping = RuleNameGenerator.GroupName;
+        rule.ApplicationName = application.ExecutablePath;
+        rule.Direction = OutboundDirection;
+        rule.Action = BlockAction;
+        rule.Enabled = application.Enabled;
+        rule.Protocol = AnyProtocol;
+        rule.Profiles = AllProfiles;
+        // COM rejects IPv4 /0; this explicit range covers exactly the same family.
+        rule.RemoteAddresses = RuleNameGenerator.AllIpv4Range;
+        return rule;
     }
 
     private void CreateIpv6RuleWithNetsh(

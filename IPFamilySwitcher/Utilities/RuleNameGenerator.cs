@@ -4,6 +4,7 @@ public static class RuleNameGenerator
 {
     private const string NamePrefix = "IPFamilySwitcher-";
     public const string AllIpv6Ranges = "0::/1,8000::/1";
+    public const string AllIpv4Range = "0.0.0.0-255.255.255.255";
 
     public const string GroupName = "IPFamilySwitcher.ManagedRules";
 

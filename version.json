@@ -1,0 +1,9 @@
+{
+  "version": "1.1.0",
+  "releaseNotes": [
+    "Cobalt and acid-yellow interface with a generated application icon.",
+    "Separate firewall and running-process indicators, individual rule toggles, and accurate active-rule counts.",
+    "Fixed Windows IPv4 range validation, IPv6 normalization, and all-profile coverage.",
+    "GitHub links, HimanM credit, and version-driven portable releases."
+  ]
+}

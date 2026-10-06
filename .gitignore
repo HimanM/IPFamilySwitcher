@@ -5,8 +5,13 @@ Release-Fixed/
 Release-Fixed2/
 Release-Fixed3/
 Release-Fixed4/
+Release-Fixed5/
+Release-Fixed6/
 .vs/
 *.user
 *.suo
 
 *.zip
+
+*.zip.sha256
+release-notes.md
