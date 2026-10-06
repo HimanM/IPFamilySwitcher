@@ -93,8 +93,16 @@ public sealed class WindowsFirewallService : IFirewallService
         catch (Exception exception)
         {
             _logger.Error($"Firewall operation failed for application {application.Id:D}.", exception);
+            var message = exception switch
+            {
+                COMException { HResult: unchecked((int)0x80070005) } =>
+                    "Windows denied the firewall operation. Confirm that IP Family Switcher is running as administrator.",
+                COMException comException =>
+                    $"Windows Firewall rejected the operation (0x{comException.HResult:X8}). See the log for details.",
+                _ => $"Unable to apply the firewall rule: {exception.Message}"
+            };
             throw new FirewallOperationException(
-                "Unable to apply the firewall rule. Administrator permission may be required.", exception);
+                message, exception);
         }
     }
 

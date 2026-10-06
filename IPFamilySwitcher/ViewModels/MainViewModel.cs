@@ -13,6 +13,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IFirewallService _firewallService;
     private readonly RuleReconciliationService _reconciliationService;
     private readonly ExecutableService _executableService;
+    private readonly PrivilegeService _privilegeService;
     private ConfigurationDocument _configuration = new();
     private string _searchText = string.Empty;
     private string _summary = "Loading...";
@@ -22,12 +23,14 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ConfigurationService configurationService,
         IFirewallService firewallService,
         RuleReconciliationService reconciliationService,
-        ExecutableService executableService)
+        ExecutableService executableService,
+        PrivilegeService? privilegeService = null)
     {
         _configurationService = configurationService;
         _firewallService = firewallService;
         _reconciliationService = reconciliationService;
         _executableService = executableService;
+        _privilegeService = privilegeService ?? new PrivilegeService();
 
         Applications = [];
         Applications.CollectionChanged += (_, _) => OnPropertyChanged(nameof(FilteredApplications));
@@ -85,6 +88,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
+    public bool IsAdministrator => _privilegeService.IsAdministrator;
+
+    public string AdministratorStatus =>
+        IsAdministrator
+            ? "Administrator privileges: Enabled"
+            : "Administrator privileges: Not enabled — restart as administrator";
 
     public string ErrorMessage
     {

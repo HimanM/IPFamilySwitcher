@@ -25,7 +25,8 @@ public partial class MainWindow : Window
             new ConfigurationService(logger: logger),
             firewallService,
             new RuleReconciliationService(firewallService, executableService, logger),
-            executableService);
+            executableService,
+            new PrivilegeService());
         _viewModel.AddApplicationRequested += AddApplication;
         _viewModel.LocateApplicationRequested += LocateApplication;
         _viewModel.ConfirmAction = message =>

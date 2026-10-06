@@ -24,6 +24,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -38,11 +39,22 @@
                 <TextBlock Text="Per-application IPv4 and IPv6 controls" Foreground="#657083" Margin="0,4,0,0"/>
             </StackPanel>
         </DockPanel>
-        <DockPanel Grid.Row="1" Margin="0,0,0,12">
+        <Border Grid.Row="1"
+                Padding="10,8"
+                Margin="0,0,0,12"
+                Background="#E8F5E9"
+                BorderBrush="#A5D6A7"
+                BorderThickness="1"
+                CornerRadius="4">
+            <TextBlock Text="{Binding AdministratorStatus}"
+                       Foreground="#1B5E20"
+                       FontWeight="SemiBold"/>
+        </Border>
+        <DockPanel Grid.Row="2" Margin="0,0,0,12">
             <TextBlock DockPanel.Dock="Left" Text="Search" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="8" MinWidth="260"/>
         </DockPanel>
-        <DataGrid Grid.Row="2"
+        <DataGrid Grid.Row="3"
                   ItemsSource="{Binding FilteredApplications}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
@@ -82,8 +94,8 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <TextBlock Grid.Row="3" Text="{Binding Summary}" Foreground="#4B5565" Margin="0,0,0,12"/>
-        <DockPanel Grid.Row="4">
+        <TextBlock Grid.Row="4" Text="{Binding Summary}" Foreground="#4B5565" Margin="0,0,0,12"/>
+        <DockPanel Grid.Row="5">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#B42318" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="500"/>
             <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                 <Button Content="Enable All" Command="{Binding EnableAllCommand}"/>
