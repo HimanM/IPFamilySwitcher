@@ -72,7 +72,7 @@ public sealed class WindowsFirewallService : IFirewallService
             rule.ApplicationName = application.ExecutablePath;
             rule.Direction = OutboundDirection;
             rule.Action = BlockAction;
-            rule.Enabled = true;
+            rule.Enabled = application.Enabled;
             rule.Protocol = AnyProtocol;
             rule.Profiles = AllProfiles;
             rule.RemoteAddresses = blockIpv6 ? "::/0" : "0.0.0.0/0";
@@ -83,7 +83,7 @@ public sealed class WindowsFirewallService : IFirewallService
                 : RuleNameGenerator.ForIpv4Block(application.Id);
             if (!EnumerateManagedRules(cancellationToken).Any(ruleInfo =>
                     string.Equals(ruleInfo.Name, expected, StringComparison.OrdinalIgnoreCase) &&
-                    ruleInfo.Enabled))
+                    ruleInfo.Enabled == application.Enabled))
             {
                 throw new InvalidOperationException("The firewall rule was created but could not be verified.");
             }

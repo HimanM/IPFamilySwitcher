@@ -243,8 +243,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             foreach (var application in Applications)
             {
-                await _firewallService.SetRuleEnabledAsync(application.Id, enabled);
                 application.Model.Enabled = enabled;
+                if (enabled && application.Mode != NetworkMode.Default)
+                {
+                    await _firewallService.ApplyModeAsync(application.Model);
+                }
+                else
+                {
+                    await _firewallService.SetRuleEnabledAsync(application.Id, enabled);
+                }
             }
 
             await _configurationService.SaveAsync(_configuration);

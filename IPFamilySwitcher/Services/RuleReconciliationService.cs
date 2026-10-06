@@ -59,11 +59,10 @@ public sealed class RuleReconciliationService
         }
 
         var rules = RulesFor(allRules, application.Id);
-        if (application.Mode == NetworkMode.Default || !application.Enabled)
+        if (application.Mode == NetworkMode.Default)
         {
             return rules.Count == 0
-                ? new(application.Id, FirewallRuleState.Correct,
-                    application.Enabled ? "Default" : "Disabled.", rules)
+                ? new(application.Id, FirewallRuleState.Correct, "Default", rules)
                 : new(application.Id, FirewallRuleState.Incorrect,
                     "An IP-family rule exists for a mode that should not block traffic.", rules);
         }
@@ -86,20 +85,26 @@ public sealed class RuleReconciliationService
         }
 
         var rule = expected[0];
-        if (!rule.Enabled)
-        {
-            return new(application.Id, FirewallRuleState.Disabled, "Firewall rule disabled.", expected);
-        }
-
         var valid = string.Equals(rule.Program, application.ExecutablePath, StringComparison.OrdinalIgnoreCase) &&
                     rule.Direction == 2 &&
                     rule.Action == 0 &&
                     string.Equals(rule.RemoteAddresses, expectedRemote, StringComparison.OrdinalIgnoreCase) &&
                     rule.Protocol == 256 &&
                     rule.Profiles == 2147;
-        return valid
+        if (!valid)
+        {
+            return new(application.Id, FirewallRuleState.Incorrect, "Incorrect firewall rule.", expected);
+        }
+
+        if (application.Enabled != rule.Enabled)
+        {
+            return new(application.Id, FirewallRuleState.Disabled,
+                "Firewall rule disabled.", expected);
+        }
+
+        return application.Enabled
             ? new(application.Id, FirewallRuleState.Correct, "Active.", expected)
-            : new(application.Id, FirewallRuleState.Incorrect, "Incorrect firewall rule.", expected);
+            : new(application.Id, FirewallRuleState.Correct, "Disabled.", expected);
     }
 
     private static IReadOnlyList<FirewallRuleInfo> RulesFor(
