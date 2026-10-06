@@ -30,6 +30,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _executableService = executableService;
 
         Applications = [];
+        Applications.CollectionChanged += (_, _) => OnPropertyChanged(nameof(FilteredApplications));
         AddApplicationCommand = new RelayCommand(_ => AddApplicationRequested?.Invoke(this, EventArgs.Empty));
         RemoveApplicationCommand = new RelayCommand(parameter => _ = RemoveAsync(parameter as ApplicationViewModel));
         RepairApplicationCommand = new RelayCommand(parameter => _ = RepairAsync(parameter as ApplicationViewModel));
