@@ -7,12 +7,14 @@ namespace IPFamilySwitcher.ViewModels;
 public sealed class ApplicationViewModel : INotifyPropertyChanged
 {
     private NetworkMode _mode;
+    private NetworkMode _pendingMode;
     private string _status = "Default";
 
     public ApplicationViewModel(ManagedApplication application)
     {
         Model = application;
         _mode = application.Mode;
+        _pendingMode = application.Mode;
     }
 
     public ManagedApplication Model { get; }
@@ -36,8 +38,29 @@ public sealed class ApplicationViewModel : INotifyPropertyChanged
             _mode = value;
             Model.Mode = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(HasPendingModeChange));
         }
     }
+
+    public NetworkMode PendingMode
+    {
+        get => _pendingMode;
+        set
+        {
+            if (_pendingMode == value)
+            {
+                return;
+            }
+
+            _pendingMode = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasPendingModeChange));
+        }
+    }
+
+    public bool HasPendingModeChange => PendingMode != Mode;
+
+    public void CommitPendingMode() => Mode = PendingMode;
 
     public string Status
     {

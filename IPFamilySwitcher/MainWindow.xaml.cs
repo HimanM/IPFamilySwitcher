@@ -32,7 +32,17 @@ public partial class MainWindow : Window
             MessageBox.Show(this, message, "Confirm action", MessageBoxButton.YesNo, MessageBoxImage.Warning) ==
             MessageBoxResult.Yes;
         DataContext = _viewModel;
-        Loaded += async (_, _) => await _viewModel.LoadAsync();
+        Loaded += async (_, _) =>
+        {
+            try
+            {
+                await _viewModel.LoadAsync();
+            }
+            catch (Exception exception)
+            {
+                _viewModel.SetError(exception.Message);
+            }
+        };
     }
 
     private async void AddApplication(object? sender, EventArgs e)
@@ -66,14 +76,4 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void ModeChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (sender is System.Windows.Controls.ComboBox comboBox &&
-            comboBox.DataContext is ApplicationViewModel application &&
-            comboBox.SelectedItem is NetworkMode mode &&
-            IsLoaded)
-        {
-            await _viewModel.ChangeModeAsync(application, mode);
-        }
-    }
 }

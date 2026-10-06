@@ -90,7 +90,7 @@ public sealed class WindowsFirewallService : IFirewallService
 
             _logger.Info($"Firewall rule created for application {application.Id:D}.");
         }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException)
+        catch (Exception exception)
         {
             _logger.Error($"Firewall operation failed for application {application.Id:D}.", exception);
             throw new FirewallOperationException(
@@ -106,7 +106,7 @@ public sealed class WindowsFirewallService : IFirewallService
             RemoveRulesForApplication(rules, applicationId, cancellationToken);
             _logger.Info($"Firewall rules removed for application {applicationId:D}.");
         }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException)
+        catch (Exception exception)
         {
             _logger.Error($"Firewall rule removal failed for application {applicationId:D}.", exception);
             throw new FirewallOperationException(
@@ -129,7 +129,7 @@ public sealed class WindowsFirewallService : IFirewallService
             }
             _logger.Info($"Firewall rules {(enabled ? "enabled" : "disabled")} for application {applicationId:D}.");
         }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException)
+        catch (Exception exception)
         {
             _logger.Error($"Firewall rule state change failed for application {applicationId:D}.", exception);
             throw new FirewallOperationException(
@@ -156,7 +156,7 @@ public sealed class WindowsFirewallService : IFirewallService
 
             return result;
         }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException)
+        catch (Exception exception)
         {
             _logger.Error("Firewall rule enumeration failed.", exception);
             throw new FirewallOperationException(
@@ -181,7 +181,7 @@ public sealed class WindowsFirewallService : IFirewallService
 
             _logger.Info("All managed firewall rules removed.");
         }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException)
+        catch (Exception exception)
         {
             _logger.Error("Managed firewall rule cleanup failed.", exception);
             throw new FirewallOperationException(

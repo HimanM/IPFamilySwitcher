@@ -34,6 +34,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         AddApplicationCommand = new RelayCommand(_ => AddApplicationRequested?.Invoke(this, EventArgs.Empty));
         RemoveApplicationCommand = new RelayCommand(parameter => _ = RemoveAsync(parameter as ApplicationViewModel));
         RepairApplicationCommand = new RelayCommand(parameter => _ = RepairAsync(parameter as ApplicationViewModel));
+        ApplyModeCommand = new RelayCommand(parameter => _ = ApplyPendingModeAsync(parameter as ApplicationViewModel));
         LocateApplicationCommand = new RelayCommand(parameter => LocateApplicationRequested?.Invoke(parameter as ApplicationViewModel));
         RefreshCommand = new RelayCommand(_ => _ = RefreshAsync());
         DisableAllCommand = new RelayCommand(_ => _ = SetAllEnabledAsync(false));
@@ -98,6 +99,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public RelayCommand AddApplicationCommand { get; }
     public RelayCommand RemoveApplicationCommand { get; }
     public RelayCommand RepairApplicationCommand { get; }
+    public RelayCommand ApplyModeCommand { get; }
     public RelayCommand LocateApplicationCommand { get; }
     public RelayCommand RefreshCommand { get; }
     public RelayCommand DisableAllCommand { get; }
@@ -108,6 +110,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public event EventHandler? AddApplicationRequested;
     public event Action<ApplicationViewModel?>? LocateApplicationRequested;
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void SetError(string message) => ErrorMessage = message;
 
     public async Task LoadAsync()
     {
@@ -154,19 +158,37 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             return;
         }
+        application.PendingMode = mode;
+        await ApplyPendingModeAsync(application);
+    }
+
+    private async Task ApplyPendingModeAsync(ApplicationViewModel? application)
+    {
+        if (application is null || !application.HasPendingModeChange)
+        {
+            return;
+        }
 
         var previousMode = application.Mode;
         try
         {
-            application.Mode = mode;
-            await _firewallService.ApplyModeAsync(application.Model);
+            await _firewallService.ApplyModeAsync(new ManagedApplication
+            {
+                Id = application.Model.Id,
+                DisplayName = application.Model.DisplayName,
+                ExecutablePath = application.Model.ExecutablePath,
+                Mode = application.PendingMode,
+                Enabled = application.Model.Enabled,
+                CreatedAt = application.Model.CreatedAt
+            });
+            application.CommitPendingMode();
             await _configurationService.SaveAsync(_configuration);
             await RefreshAsync();
             ErrorMessage = string.Empty;
         }
         catch (Exception exception) when (exception is FirewallOperationException or IOException or InvalidOperationException)
         {
-            application.Mode = previousMode;
+            application.PendingMode = previousMode;
             ErrorMessage = exception.Message;
             await RefreshAsync();
         }
