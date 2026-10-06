@@ -31,8 +31,8 @@
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0" Margin="0,0,0,18">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="Refresh" Command="{Binding RefreshCommand}"/>
-                <Button Content="＋ Add Application" Command="{Binding AddApplicationCommand}"/>
+                <Button Content="Refresh" ToolTip="Refresh firewall state and application statuses" Command="{Binding RefreshCommand}"/>
+                <Button Content="＋ Add Application" ToolTip="Add an executable to IP Family Switcher" Command="{Binding AddApplicationCommand}"/>
             </StackPanel>
             <StackPanel>
                 <TextBlock Text="IP Family Switcher" FontSize="26" FontWeight="SemiBold" Foreground="#18212F"/>
@@ -73,6 +73,7 @@
                                 <ComboBox ItemsSource="{Binding DataContext.Modes, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                           SelectedItem="{Binding PendingMode, UpdateSourceTrigger=PropertyChanged}"/>
                                 <Button Content="Apply"
+                                        ToolTip="Apply the selected network mode and update its firewall rule"
                                         Command="{Binding DataContext.ApplyModeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
                                         Visibility="{Binding HasPendingModeChange, Converter={StaticResource BooleanToVisibilityConverter}}"/>
@@ -85,9 +86,9 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <WrapPanel>
-                                <Button Content="Repair" Command="{Binding DataContext.RepairApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                                <Button Content="Locate" Command="{Binding DataContext.LocateApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                                <Button Content="Remove" Command="{Binding DataContext.RemoveApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="Repair" ToolTip="Recreate or correct this application's managed firewall rule" Command="{Binding DataContext.RepairApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="Locate" ToolTip="Choose a new executable path while keeping this application identity" Command="{Binding DataContext.LocateApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="Remove" ToolTip="Remove this application and its managed firewall rule" Command="{Binding DataContext.RemoveApplicationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                             </WrapPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -96,12 +97,28 @@
         </DataGrid>
         <TextBlock Grid.Row="4" Text="{Binding Summary}" Foreground="#4B5565" Margin="0,0,0,12"/>
         <DockPanel Grid.Row="5">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#B42318" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="500"/>
+            <DockPanel>
+                <Button Content="Copy error"
+                        DockPanel.Dock="Right"
+                        ToolTip="Copy the current error message to the clipboard"
+                        Click="CopyError"
+                        Margin="8,4,4,4"/>
+                <TextBox Text="{Binding ErrorMessage}"
+                         IsReadOnly="True"
+                         IsTabStop="True"
+                         TextWrapping="Wrap"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Foreground="#B42318"
+                         VerticalAlignment="Center"
+                         MaxWidth="620"
+                         ToolTip="Select and copy this error text, or use Copy error."/>
+            </DockPanel>
             <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
-                <Button Content="Enable All" Command="{Binding EnableAllCommand}"/>
-                <Button Content="Disable All" Command="{Binding DisableAllCommand}"/>
-                <Button Content="Repair All" Command="{Binding RepairAllCommand}"/>
-                <Button Content="Remove All Rules" Command="{Binding RemoveAllRulesCommand}"/>
+                <Button Content="Enable All" ToolTip="Enable all managed firewall rules without deleting them" Command="{Binding EnableAllCommand}"/>
+                <Button Content="Disable All" ToolTip="Disable all managed firewall rules while keeping configuration" Command="{Binding DisableAllCommand}"/>
+                <Button Content="Repair All" ToolTip="Repair managed rules for all configured restricted applications" Command="{Binding RepairAllCommand}"/>
+                <Button Content="Remove All Rules" ToolTip="Delete only IP Family Switcher's managed firewall rules" Command="{Binding RemoveAllRulesCommand}"/>
             </WrapPanel>
         </DockPanel>
     </Grid>

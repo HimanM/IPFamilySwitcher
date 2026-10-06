@@ -77,4 +77,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CopyError(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(_viewModel.ErrorMessage))
+        {
+            Clipboard.SetText(_viewModel.ErrorMessage);
+        }
+    }
+
 }

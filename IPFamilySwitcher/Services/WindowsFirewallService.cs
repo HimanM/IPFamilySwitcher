@@ -66,7 +66,6 @@ public sealed class WindowsFirewallService : IFirewallService
             rule.Name = blockIpv6
                 ? RuleNameGenerator.ForIpv6Block(application.Id)
                 : RuleNameGenerator.ForIpv4Block(application.Id);
-            rule.DisplayName = $"[IPFamilySwitcher] {application.DisplayName} - {(blockIpv6 ? "Block IPv6" : "Block IPv4")}";
             rule.Description = RuleNameGenerator.Description(application.Id);
             rule.Grouping = RuleNameGenerator.GroupName;
             rule.ApplicationName = application.ExecutablePath;
