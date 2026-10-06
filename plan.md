@@ -20,7 +20,7 @@
 - [x] Add versioned configuration schema for managed applications.
 - [x] Add canonical `.exe` path validation and case-insensitive duplicate detection.
 - [x] Add atomic configuration writes, backup recovery, and logging.
-- [ ] Add unit tests for serialization, migration, paths, and rule names.
+- [x] Add unit tests for serialization, migration, paths, and rule names.
 
 ## Phase 3 - Firewall ownership and reconciliation
 
