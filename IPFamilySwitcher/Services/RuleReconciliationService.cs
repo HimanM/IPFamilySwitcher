@@ -90,9 +90,9 @@ public sealed class RuleReconciliationService
         var valid = string.Equals(rule.Program, application.ExecutablePath, StringComparison.OrdinalIgnoreCase) &&
                     rule.Direction == 2 &&
                     rule.Action == 0 &&
-                    string.Equals(rule.RemoteAddresses, expectedRemote, StringComparison.OrdinalIgnoreCase) &&
+                    AddressListsEqual(rule.RemoteAddresses, expectedRemote) &&
                     rule.Protocol == 256 &&
-                    rule.Profiles == 2147;
+                    (rule.Profiles == 7 || rule.Profiles == 2147);
         if (!valid)
         {
             return new(application.Id, FirewallRuleState.Incorrect, "Incorrect firewall rule.", expected);
@@ -113,4 +113,14 @@ public sealed class RuleReconciliationService
         IReadOnlyList<FirewallRuleInfo> rules,
         Guid applicationId) =>
         rules.Where(rule => rule.ApplicationId == applicationId).ToArray();
+
+    private static bool AddressListsEqual(string actual, string expected)
+    {
+        static string[] Normalize(string value) =>
+            value.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+        return Normalize(actual).SequenceEqual(Normalize(expected), StringComparer.OrdinalIgnoreCase);
+    }
 }
