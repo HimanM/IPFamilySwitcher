@@ -117,4 +117,6 @@ public partial class MainWindow : Window
         }
     }
 
+    private void DismissError(object sender, RoutedEventArgs e) => _viewModel.SetError(string.Empty);
+
 }

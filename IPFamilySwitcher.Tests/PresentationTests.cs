@@ -64,9 +64,26 @@ public sealed class PresentationTests
                 content.Arrange(new Rect(0, 0, window.Width, window.Height));
                 content.UpdateLayout();
                 Assert.Equal(window.MinWidth, content.ActualWidth);
+                var font = (FontFamily)window.Resources["DisplayFont"];
+                Assert.True(new Typeface(font, FontStyles.Normal, FontWeights.Bold, FontStretches.Normal).TryGetGlyphTypeface(out var glyphs));
+                Assert.Contains("Rajdhani", glyphs.FontUri.ToString(), StringComparison.OrdinalIgnoreCase);
+                var panel = (FrameworkElement)window.FindName("ErrorPanel");
+                var table = (FrameworkElement)window.FindName("ApplicationsGrid");
+                var originalTableHeight = table.ActualHeight;
+                foreach (var message in new[] { "Short error", string.Join('\n', Enumerable.Repeat(new string('X', 5000), 100)), string.Empty })
+                {
+                    vm.SetError(message);
+                    content.Measure(new Size(window.Width, window.Height));
+                    content.Arrange(new Rect(0, 0, window.Width, window.Height));
+                    content.UpdateLayout();
+                    Assert.Equal(78, panel.ActualHeight);
+                    Assert.Equal(originalTableHeight, table.ActualHeight);
+                    Assert.True(panel.ActualWidth <= content.ActualWidth);
+                    Assert.Equal(message, ((System.Windows.Controls.TextBox)window.FindName("ErrorText")).Text);
+                }
                 // Export a representative desktop size after checking the minimum layout.
                 window.Width = 1180;
-                window.Height = 800;
+                window.Height = 820;
                 content.Measure(new Size(window.Width, window.Height));
                 content.Arrange(new Rect(0, 0, window.Width, window.Height));
                 content.UpdateLayout();

@@ -13,7 +13,7 @@ A small Windows desktop utility that installs persistent, executable-scoped Wind
 
 ## Get started
 
-1. Download `IPFamilySwitcher-Portable-x64-v1.1.0.zip` from [Releases](https://github.com/HimanM/IPFamilySwitcher/releases/latest) and extract it.
+1. Download `IPFamilySwitcher-Portable-x64-v1.2.0.zip` from [Releases](https://github.com/HimanM/IPFamilySwitcher/releases/latest) and extract it.
 2. Run `IPFamilySwitcher.exe` and approve the administrator prompt.
 3. Select **Add application**, then choose its `.exe`. It starts in **Default** mode.
 4. Choose **IPv4Only** or **IPv6Only**, then click **Apply change**.
@@ -76,9 +76,9 @@ dotnet test IPFamilySwitcher.Tests/IPFamilySwitcher.Tests.csproj --configuration
 The publish script reads `version.json`, stamps the executable version, and produces:
 
 ```text
-Release/v1.1.0/IPFamilySwitcher.exe
-IPFamilySwitcher-Portable-x64-v1.1.0.zip
-IPFamilySwitcher-Portable-x64-v1.1.0.zip.sha256
+Release/v1.2.0/IPFamilySwitcher.exe
+IPFamilySwitcher-Portable-x64-v1.2.0.zip
+IPFamilySwitcher-Portable-x64-v1.2.0.zip.sha256
 ```
 
 Tests cover naming, configuration serialization, reconciliation, Windows COM property validation, process-path matching, status presentation, and WPF loading/layout. Tests use detached COM rules and do **not** install live firewall rules. Actual rule installation and network behavior need an elevated manual test.
@@ -91,7 +91,7 @@ Manual smoke test: add an executable, apply each family restriction, verify the 
 
 ```json
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "releaseNotes": ["Describe the user-visible changes here."]
 }
 ```
@@ -102,6 +102,6 @@ The release job uses GitHub's built-in token with [`contents: write`](https://do
 
 ## Design
 
-Cobalt, acid yellow, ink, and off-white; hard borders, clear typography, and text-backed status colors. Original app icon generated with the built-in image tool; prompt and asset notes are in [docs/icon.md](docs/icon.md). The GitHub button opens this repository in your default browser.
+Charcoal, acid yellow, muted sage, and safety orange; hard borders, angular typography, and text-backed status colors. Rajdhani Bold and SemiBold are embedded locally from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/rajdhani) under the included [SIL Open Font License](IPFamilySwitcher/Resources/Fonts/OFL.txt). Buttons provide hover, pressed, and keyboard-focus states. Error details use a fixed-height scrollable panel with Copy error and Dismiss controls, so long messages cannot expand the layout. Original app icon generated with the built-in image tool; prompt and asset notes are in [docs/icon.md](docs/icon.md). The GitHub button opens this repository in your default browser.
 
 Made by **HimanM**.

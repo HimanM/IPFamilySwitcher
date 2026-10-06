@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "releaseNotes": [
-    "Cobalt and acid-yellow interface with a generated application icon.",
-    "Separate firewall and running-process indicators, individual rule toggles, and accurate active-rule counts.",
-    "Fixed Windows IPv4 range validation, IPv6 normalization, and all-profile coverage.",
-    "GitHub links, HimanM credit, and version-driven portable releases."
+    "Embedded Rajdhani display typography and a charcoal, lime, and orange interface inspired by industrial sci-fi design.",
+    "Refined buttons with orange corner accents, hover/pressed feedback, and a stable keyboard-focus outline.",
+    "Fixed-height error details keep the layout stable for long messages; scroll, copy the full message, or dismiss it.",
+    "Added regression coverage for embedded font loading and very long error messages at the minimum window size."
   ]
 }

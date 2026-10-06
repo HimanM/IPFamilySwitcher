@@ -24,6 +24,8 @@
   <ItemGroup>
     <Resource Include="Resources/app-icon.png" />
     <Resource Include="Resources/app.ico" />
+    <Resource Include="Resources/Fonts/*.ttf" />
+    <Content Include="Resources/Fonts/OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../version.json" LogicalName="IPFamilySwitcher.version.json" />
   </ItemGroup>
 </Project>
