@@ -18,6 +18,9 @@ public sealed class DomainTests
         Assert.Equal(
             "IPFamilySwitcher-c68da715-d660-4b18-a0fb-f2dd1be9335e-BlockIPv4",
             RuleNameGenerator.ForIpv4Block(id));
+        Assert.True(RuleNameGenerator.TryGetApplicationId(
+            RuleNameGenerator.ForIpv6Block(id), out var parsedId));
+        Assert.Equal(id, parsedId);
     }
 
     [Fact]

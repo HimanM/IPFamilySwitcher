@@ -253,14 +253,7 @@ public sealed class WindowsFirewallService : IFirewallService
 
     private static Guid? TryGetApplicationId(string name)
     {
-        const string prefix = "IPFamilySwitcher-";
-        if (!name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var parts = name[prefix.Length..].Split('-', 2);
-        return parts.Length == 2 && Guid.TryParse(parts[0], out var id) ? id : null;
+        return RuleNameGenerator.TryGetApplicationId(name, out var id) ? id : null;
     }
 
     private static void ValidateExecutable(ManagedApplication application)
