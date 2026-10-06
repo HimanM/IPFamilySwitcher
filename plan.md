@@ -32,7 +32,7 @@
 
 ## Phase 4 - Core application workflow
 
-- [x] Add executable selection, metadata/icon lookup, add/remove, locate, and edit workflows.
+- [x] Add executable selection, add/remove, locate, and edit workflows.
 - [x] Add per-application mode and rule enabled-state operations.
 - [x] Add global enable/disable and remove-all behavior with confirmation.
 - [x] Add privilege detection and understandable user-facing errors.
@@ -54,7 +54,7 @@
 
 ## Phase 7 - Release
 
-- [ ] Add release documentation and manual test checklist.
-- [ ] Add self-contained `win-x64` publish configuration.
+- [x] Add release documentation and manual test checklist.
+- [x] Add self-contained `win-x64` publish configuration.
 - [ ] Add installer/portable packaging without touching unmanaged firewall rules.
 - [ ] Run build, unit tests, publish verification, and final manual safety review.
