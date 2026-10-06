@@ -103,7 +103,7 @@
                         ToolTip="Copy the current error message to the clipboard"
                         Click="CopyError"
                         Margin="8,4,4,4"/>
-                <TextBox Text="{Binding ErrorMessage}"
+                <TextBox Text="{Binding ErrorMessage, Mode=OneWay}"
                          IsReadOnly="True"
                          IsTabStop="True"
                          TextWrapping="Wrap"
