@@ -66,5 +66,5 @@
 - Automated tests: 10 passed.
 - Release build: passed with 0 warnings and 0 errors.
 - Self-contained `win-x64` publish: passed.
-- Portable archive: `IPFamilySwitcher-Portable-x64.zip`.
+- Portable archive: `IPFamilySwitcher-Portable-x64.zip` (published after the disabled-rule lifecycle fix).
 - Live firewall create/remove verification must be run from an elevated Administrator shell.
