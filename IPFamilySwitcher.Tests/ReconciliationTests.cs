@@ -100,6 +100,31 @@ public sealed class ReconciliationTests
     }
 
     [Fact]
+    public async Task AcceptsComAllProfilesMask()
+    {
+        var application = CreateApplication(NetworkMode.IPv4Only, Environment.ProcessPath!);
+        var rule = new FirewallRuleInfo(
+            RuleNameGenerator.ForIpv6Block(application.Id),
+            application.Id,
+            application.ExecutablePath,
+            RuleNameGenerator.GroupName,
+            true,
+            2,
+            0,
+            RuleNameGenerator.AllIpv6Ranges,
+            256,
+            int.MaxValue);
+        var reconciliation = new RuleReconciliationService(
+            new FakeFirewallService([rule]),
+            new ExecutableService(),
+            new Logger(Path.Combine(Path.GetTempPath(), "IPFamilySwitcherTests", Guid.NewGuid().ToString("N"))));
+
+        var result = await reconciliation.ReconcileAsync([application]);
+
+        Assert.Equal(FirewallRuleState.Correct, result[0].State);
+    }
+
+    [Fact]
     public void FindsRulesWithoutConfiguredApplicationsAsOrphans()
     {
         var application = CreateApplication(NetworkMode.Default);

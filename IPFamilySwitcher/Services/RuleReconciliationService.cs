@@ -92,7 +92,7 @@ public sealed class RuleReconciliationService
                     rule.Action == 0 &&
                     AddressListsEqual(rule.RemoteAddresses, expectedRemote) &&
                     rule.Protocol == 256 &&
-                    (rule.Profiles == 7 || rule.Profiles == 2147);
+                    IsAllProfiles(rule.Profiles);
         if (!valid)
         {
             return new(application.Id, FirewallRuleState.Incorrect, "Incorrect firewall rule.", expected);
@@ -123,4 +123,7 @@ public sealed class RuleReconciliationService
 
         return Normalize(actual).SequenceEqual(Normalize(expected), StringComparer.OrdinalIgnoreCase);
     }
+
+    private static bool IsAllProfiles(int profiles) =>
+        profiles is 7 or 2147 or int.MaxValue;
 }

@@ -29,6 +29,7 @@
 - [x] Implement safe mode transitions with conflict removal and verification.
 - [x] Implement startup reconciliation, missing/incorrect/disabled/orphan states, and repair.
 - [x] Preserve disabled restricted-mode rules so reconciliation reports `Disabled` instead of `Missing`.
+- [x] Accept the COM all-profiles mask used by `profile=any` rules.
 - [x] Add firewall service tests with clearly separated administrator-required integration coverage.
 
 ## Phase 4 - Core application workflow
@@ -63,7 +64,7 @@
 
 ## Verification notes
 
-- Automated tests: 10 passed.
+- Automated tests: 11 passed.
 - Release build: passed with 0 warnings and 0 errors.
 - Self-contained `win-x64` publish: passed.
 - Portable archive: `IPFamilySwitcher-Portable-x64.zip` (published after the disabled-rule lifecycle fix).
