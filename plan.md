@@ -27,7 +27,7 @@
 - [x] Implement a native Windows Firewall service scoped to the managed group and app GUID.
 - [x] Create, validate, enable, disable, remove, and enumerate managed rules.
 - [x] Implement safe mode transitions with conflict removal and verification.
-- [ ] Implement startup reconciliation, missing/incorrect/disabled/orphan states, and repair.
+- [x] Implement startup reconciliation, missing/incorrect/disabled/orphan states, and repair.
 - [ ] Add firewall service tests with clearly separated administrator-required integration coverage.
 
 ## Phase 4 - Core application workflow
