@@ -18,6 +18,20 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string _searchText = string.Empty;
     private string _summary = "Loading...";
     private string _errorMessage = string.Empty;
+    private ApplicationViewModel? _selectedApplication;
+
+    public ApplicationViewModel? SelectedApplication
+    {
+        get => _selectedApplication;
+        set
+        {
+            if (_selectedApplication == value) return;
+            // A pending mode belongs to the current editing session, never another row.
+            if (_selectedApplication is not null) _selectedApplication.PendingMode = _selectedApplication.Mode;
+            _selectedApplication = value;
+            OnPropertyChanged();
+        }
+    }
 
     public MainViewModel(
         ConfigurationService configurationService,
@@ -72,6 +86,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _searchText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(FilteredApplications));
+            if (SelectedApplication is not null && !FilteredApplications.Contains(SelectedApplication)) SelectedApplication = null;
         }
     }
 
@@ -139,6 +154,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         await RefreshAsync();
+        SelectedApplication = Applications.FirstOrDefault();
     }
 
     public async Task AddAsync(string path)
@@ -159,6 +175,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _configuration.Applications.Add(application);
             await _configurationService.SaveAsync(_configuration);
             Applications.Add(new ApplicationViewModel(application));
+            SearchText = string.Empty;
+            SelectedApplication = Applications.Last();
             await RefreshAsync();
             ErrorMessage = string.Empty;
         }
@@ -186,6 +204,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         var previousMode = application.Mode;
+        var requestedMode = application.PendingMode;
         try
         {
             await _firewallService.ApplyModeAsync(new ManagedApplication
@@ -193,11 +212,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 Id = application.Model.Id,
                 DisplayName = application.Model.DisplayName,
                 ExecutablePath = application.Model.ExecutablePath,
-                Mode = application.PendingMode,
+                Mode = requestedMode,
                 Enabled = application.Model.Enabled,
                 CreatedAt = application.Model.CreatedAt
             });
-            application.CommitPendingMode();
+            application.Mode = requestedMode;
+            application.PendingMode = requestedMode;
             await _configurationService.SaveAsync(_configuration);
             await RefreshAsync();
             ErrorMessage = string.Empty;
@@ -261,6 +281,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _configuration.Applications.Remove(application.Model);
             await _configurationService.SaveAsync(_configuration);
             Applications.Remove(application);
+            SelectedApplication = FilteredApplications.FirstOrDefault();
             UpdateSummary();
             ErrorMessage = string.Empty;
         }
@@ -371,6 +392,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             foreach (var application in Applications)
             {
                 application.Mode = NetworkMode.Default;
+                application.PendingMode = NetworkMode.Default;
                 application.Model.Enabled = true;
             }
 

@@ -1,9 +1,10 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "releaseNotes": [
-    "Embedded Rajdhani display typography and a charcoal, lime, and orange interface inspired by industrial sci-fi design.",
-    "Refined buttons with orange corner accents, hover/pressed feedback, and a stable keyboard-focus outline.",
-    "Fixed-height error details keep the layout stable for long messages; scroll, copy the full message, or dismiss it.",
-    "Added regression coverage for embedded font loading and very long error messages at the minimum window size."
+    "Compact 56-pixel application rows show at least five entries at the default window size.",
+    "Moved per-application controls into a shared selection panel with equally sized action buttons.",
+    "Fixed selected-row contrast, unified Rajdhani typography, and styled vertical and horizontal scrollbars.",
+    "Kept long errors in a fixed-height panel; selection changes now discard unapplied mode edits safely.",
+    "Updated README screenshots and added layout checks for selection, button bounds, and visible row count."
   ]
 }

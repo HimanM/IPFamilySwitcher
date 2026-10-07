@@ -13,10 +13,10 @@ A small Windows desktop utility that installs persistent, executable-scoped Wind
 
 ## Get started
 
-1. Download `IPFamilySwitcher-Portable-x64-v1.2.0.zip` from [Releases](https://github.com/HimanM/IPFamilySwitcher/releases/latest) and extract it.
+1. Download `IPFamilySwitcher-Portable-x64-v1.3.0.zip` from [Releases](https://github.com/HimanM/IPFamilySwitcher/releases/latest) and extract it.
 2. Run `IPFamilySwitcher.exe` and approve the administrator prompt.
 3. Select **Add application**, then choose its `.exe`. It starts in **Default** mode.
-4. Choose **IPv4Only** or **IPv6Only**, then click **Apply change**.
+4. Select an application row. In **Selected application**, choose **IPv4Only** or **IPv6Only**, then click **Apply change**.
 5. Return to **Default** to remove that application's managed block.
 
 Requires Windows 11 or Windows 10 22H2+, x64. Portable releases include the .NET runtime. Configuration is shared across portable copies, not stored beside the executable. Close an older copy before launching a new version.
@@ -50,7 +50,13 @@ A restriction applies to the selected executable path. Applications that delegat
 
 Hover over a firewall status for details. **Enabled rules** counts enabled rules, not running applications. Process inspection runs every five seconds while the window is visible and pauses when minimized. It never installs or removes firewall rules. “Active” validates rule configuration; it is not a live traffic test or a guarantee that another security product permits the connection.
 
-Use individual **Enable / Disable**, **Repair**, and **Locate** controls, or the corresponding global actions. **Remove all rules** asks for confirmation, removes this tool's managed rules, and resets configured apps to Default. Closing the app leaves rules in place.
+Select a row to use **Enable / Disable**, **Repair**, **Locate**, or **Remove** in the shared right-hand panel. Buttons in this panel always target the selected application. Mode edits require **Apply change**; changing selection discards unapplied edits. Adding an executable selects it automatically. A search that hides the selection clears the panel. Global actions below the table affect all configured applications, including those hidden by search. **Remove all rules** asks for confirmation, removes this tool's managed rules, and resets configured apps to Default. Closing the app leaves rules in place.
+
+### Long errors stay contained
+
+The error panel reserves a fixed height. Scroll within it, copy the full message, or dismiss it without moving the list or action controls.
+
+![Scrollable error details without layout expansion (illustrative message)](docs/interface-error.png)
 
 ## Ownership and local data
 
@@ -76,12 +82,12 @@ dotnet test IPFamilySwitcher.Tests/IPFamilySwitcher.Tests.csproj --configuration
 The publish script reads `version.json`, stamps the executable version, and produces:
 
 ```text
-Release/v1.2.0/IPFamilySwitcher.exe
-IPFamilySwitcher-Portable-x64-v1.2.0.zip
-IPFamilySwitcher-Portable-x64-v1.2.0.zip.sha256
+Release/v1.3.0/IPFamilySwitcher.exe
+IPFamilySwitcher-Portable-x64-v1.3.0.zip
+IPFamilySwitcher-Portable-x64-v1.3.0.zip.sha256
 ```
 
-Tests cover naming, configuration serialization, reconciliation, Windows COM property validation, process-path matching, status presentation, and WPF loading/layout. Tests use detached COM rules and do **not** install live firewall rules. Actual rule installation and network behavior need an elevated manual test.
+Tests cover naming, configuration serialization, reconciliation, Windows COM property validation, process-path matching, selected-action targets, selection contrast, equal button sizes and bounds, embedded fonts, long-error containment, and at least five visible rows at the default size. Tests use detached COM rules and do **not** install live firewall rules. Actual rule installation and network behavior need an elevated manual test.
 
 Manual smoke test: add an executable, apply each family restriction, verify the opposite family is blocked, return to Default, close/reopen to check persistence, and confirm unrelated firewall rules remain unchanged.
 
@@ -91,7 +97,7 @@ Manual smoke test: add an executable, apply each family restriction, verify the 
 
 ```json
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "releaseNotes": ["Describe the user-visible changes here."]
 }
 ```
@@ -102,6 +108,6 @@ The release job uses GitHub's built-in token with [`contents: write`](https://do
 
 ## Design
 
-Charcoal, acid yellow, muted sage, and safety orange; hard borders, angular typography, and text-backed status colors. Rajdhani Bold and SemiBold are embedded locally from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/rajdhani) under the included [SIL Open Font License](IPFamilySwitcher/Resources/Fonts/OFL.txt). Buttons provide hover, pressed, and keyboard-focus states. Error details use a fixed-height scrollable panel with Copy error and Dismiss controls, so long messages cannot expand the layout. Original app icon generated with the built-in image tool; prompt and asset notes are in [docs/icon.md](docs/icon.md). The GitHub button opens this repository in your default browser.
+Charcoal, acid yellow, muted sage, and safety orange; hard borders, angular typography, and text-backed status colors. Compact 56-pixel rows fit at least five applications at the default size; selection stays dark-on-lime even when focus moves to the action panel. Shared action buttons have consistent dimensions and custom scrollbars use orange drag feedback. Rajdhani Bold and SemiBold are embedded locally from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/rajdhani) under the included [SIL Open Font License](IPFamilySwitcher/Resources/Fonts/OFL.txt). Buttons provide hover, pressed, and keyboard-focus states. Error details use a fixed-height scrollable panel with Copy error and Dismiss controls, so long messages cannot expand the layout. Original app icon generated with the built-in image tool; prompt and asset notes are in [docs/icon.md](docs/icon.md). The GitHub button opens this repository in your default browser.
 
 Made by **HimanM**.
